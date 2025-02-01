@@ -5,32 +5,70 @@ import { protect, roleBasedAccess, verifyToken } from "../../middleware/authMidd
 import Job from "../../models/Jobs/job.model.js";
 const applicantRouter = express.Router()
 
-applicantRouter.post("/updateProfile", protect, roleBasedAccess(["jobseeker"]), async(req, res) => {
-    try {
-        const jobseekerId = req.params.jobseekerId || req.body.jobseekerId
-        const {  grade, certificate, courseStudied, schoolattended, experience, skills, yearsOfExperience } = req.body
 
-        const jobseeker = await User.findById(jobseekerId);
+applicantRouter.post("/postcvprofile", protect, roleBasedAccess(["jobseeker"]), async(req, res) => {
+    try {
+        const {  grade, certificate, courseStudied, schoolattended, experience, skills, yearsOfExperience } = req.body
+        const jobseeker = await User.find({jobseekerId: req.user.id});
+        if (!jobseeker ) {
+            return res.status(404).json({ error: "Job seeker not found or invalid role." });
+        }
+        const applicant = new Applicant({
+            grade,
+            certificate,
+            courseStudied,
+            schoolattended,
+            schoolattended,
+            experience,
+            skills,
+            yearsOfExperience,
+            jobseekerId: req.user.id
+        })
+
+        await applicant.save()
+        return res.status(200).json(applicant)
+    } catch (error) {
+        console.log(error)
+        return res.status(500).json({message: "an error occured"})
+    }
+})
+
+applicantRouter.put("/updatemycv/:id", protect, roleBasedAccess(["jobseeker"]), async (req, res) => {
+    try {
+        const { grade, certificate, courseStudied, schoolattended, experience, skills, yearsOfExperience } = req.body;
+
+      
+        const jobseeker = await User.findById(req.user.id);
         if (!jobseeker || jobseeker.role !== "jobseeker") {
             return res.status(404).json({ error: "Job seeker not found or invalid role." });
         }
 
+
         const updatedProfile = await Applicant.findOneAndUpdate(
-            { jobseekerId },
+            { jobseekerId: req.user.id }, 
             { grade, certificate, courseStudied, schoolattended, experience, skills, yearsOfExperience },
-            { new: true, upsert: true }
+            { new: true, upsert: true } 
         );
 
-
-        res.status(200).json({ message: "Profile updated successfully!", profile: updatedProfile })
+        res.status(200).json({ message: "Profile updated successfully!", profile: updatedProfile });
     } catch (error) {
-        console.log(error)
+        console.error(error);
         res.status(500).json({ error: error.message });
     }
-})
+});
+
+applicantRouter.get("/getcvdetails", protect,roleBasedAccess(["jobseeker"]), async(req, res) => {
+    try {
+        const myapplicantdetails = await Applicant.find({jobseekerId: req.user.id})
+        return res.status(200).json(myapplicantdetails)
+    } catch (error) {
+        console.log(error)
+        return res.status(500).json({message: "an error occurred"})
+    }
+} )
 
 
-applicantRouter.post("/appliforjob", verifyToken, roleBasedAccess(["jobseeker"]), async(req, res) => {
+applicantRouter.post("/applyforjob", verifyToken, roleBasedAccess(["jobseeker"]), async(req, res) => {
     try {
         const {email, jobId} = req.body
 

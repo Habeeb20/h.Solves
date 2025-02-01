@@ -13,6 +13,7 @@ const Signup = () => {
     fname: "",
     lname: "",
     email: "",
+    phone:"",
     username: "",
     password: "",
     role: "",
@@ -154,6 +155,16 @@ const Signup = () => {
               placeholder="Enter your email address..."
               className="w-full pl-10 py-3 border rounded-lg focus:ring focus:ring-green-200 outline-none"
               name="email"
+              onChange={handleInputChange}
+            />
+          </div>
+          <div className="relative">
+            <FaEnvelope className="absolute top-3 left-3 text-gray-400" />
+            <input
+              type="text"
+              placeholder="phone number"
+              className="w-full pl-10 py-3 border rounded-lg focus:ring focus:ring-green-200 outline-none"
+              name="phone"
               onChange={handleInputChange}
             />
           </div>

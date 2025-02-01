@@ -9,13 +9,15 @@ const applicantSchema = new mongoose.Schema({
     },
     grade:{
         type:String,
+        required: true
     },
-    certificate:{type:String},
-    courseStudied:{type:String},
-    schoolattended:{type:String},
-    experience:{type:String},
-    skills:{type:String},
-    yearsOfExperience:{type:String}
+    certificate:{type:String, required: true},
+    courseStudied:{type:String, required: true},
+    schoolattended:{type:String, required: true},
+    experience:{type:String, required: true},
+    skills:{type:String, required: true},
+    yearsOfExperience:{type:String, required: true},
+    createdAt:{ type: Date, default: Date.now },
 
 })
 

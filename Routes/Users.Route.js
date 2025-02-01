@@ -42,13 +42,14 @@ const sendOTPEmail = async(email, otp) => {
 
 userRouter.post("/register", upload, async(req, res, next) => {
     try {
-        const {fname, lname, username, email, password, confirmPassword, gender,role} = req.body
+        const {fname, lname, username,phone, email, password, confirmPassword, gender,role} = req.body
         const missingFields = [];
 
         if (!fname) missingFields.push("fname");
         if (!lname) missingFields.push("lname")
         if (!username) missingFields.push("username");
         if (!email) missingFields.push("email");
+        if (!phone) missingFields.push("phone");
         if (!role) missingFields.push("role");
         if (!gender) missingFields.push("gender");
         if (!password) missingFields.push("password");
@@ -88,7 +89,7 @@ userRouter.post("/register", upload, async(req, res, next) => {
         const profilePicture = result.secure_url;
     
         const user = new User({
-            email, fname, lname, username, gender, role, password: hashedPassword, profilePicture, uniqueNumber,
+            email, fname, lname, username,phone, gender, role, password: hashedPassword, profilePicture, uniqueNumber,
             verificationToken,
             verificationTokenExpiresAt,
         })
@@ -241,7 +242,7 @@ userRouter.get("/dashboard", verifyToken, async(req, res) => {
 })
 
 
-userRouter.put("/editdashboard/:id", protect, async(req, res) => {
+userRouter.put("/editdashboard/:id", verifyToken, async(req, res) => {
   const {id} = req.params
 
   const dashboard = await User.findById(id)
