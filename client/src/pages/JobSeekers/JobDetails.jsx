@@ -10,6 +10,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-hot-toast";
 const JobDetails = () => {
   const [myJobs, setMyJobs] = useState([]);
+  const navigate = useNavigate()
   const [userData, setUserData] = useState({});
   const [allJobs, setAllJobs] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -20,6 +21,8 @@ const JobDetails = () => {
   const [activePage, setActivePage] = useState("overview");
   const [searchInput, setSearchInput] = useState("");
   const [filteredJobs, setFilteredJobs] = useState([]);
+  const [message, setMessage] = useState("")
+  
  const {id} = useParams()
  const [viewJobs, setViewJobs] = useState([])
   //fetching data
@@ -69,6 +72,23 @@ const JobDetails = () => {
 
   //handle search jobs
 
+
+  const handleApply = async() => {
+    setLoading(true)
+
+    try {
+      const token = localStorage.getItem("token")
+      const response = await axios.post(`${import.meta.env.VITE_API_3}/applyforjob`, {jobId : id}, {
+        headers:{Authorization: `Bearer ${token}`}
+      })
+      setMessage(response?.data?.message || "successful");
+    } catch (error) {
+      console.log(error)
+      setError(error.response?.data?.message || "Something went wrong.");
+    }finally {
+      setLoading(false);
+    }
+  }
   const handleSearchChange = (e) => {
     const term = e.target.value;
     setSearchInput(term);
@@ -269,11 +289,13 @@ const JobDetails = () => {
             {/* Tabs */}
             <div className="mt-6">
               <ul className="flex gap-4 text-sm border-b pb-2">
-              
+           
 
               </ul>
               <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
+                {successMessage && <p className="text-green-500">{successMessage}</p>}
+                {error && <p className="text-red-500">{error}</p>}
                   <h4 className="text-sm font-medium text-gray-700">Company Name</h4>
                   <p className="text-sm text-gray-900">{viewJobs.companyName}</p>
                 </div>
@@ -312,6 +334,18 @@ job Title
                   <h4 className="text-sm font-medium text-gray-700">Number of vacancies</h4>
                   <p className="text-sm text-gray-900">{viewJobs.vacancies} </p>
                 </div>
+                <div className="flex col-span-2 space-x-2">
+                <button
+                onClick={handleApply}
+                disabled={loading}
+                 className="bg-green-500 rounded-full p-2 w-40 hover:bg-green-800 text-white">
+                  {loading ? "Applying..." : "Apply for Job"}
+                </button>
+                <button className="bg-blue-500 rounded-full p-2 w-40 hover:bg-blue-800 text-white">
+                  chat the employer
+                </button>
+                </div>
+              
                 {/* Add other details here */}
               </div>
             </div>

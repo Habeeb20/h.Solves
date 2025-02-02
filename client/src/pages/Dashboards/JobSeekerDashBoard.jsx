@@ -27,6 +27,7 @@ const JobSeekerDashBoard = () => {
   const [showModal, setShowModal] = useState(false);
   const [cvModal, setCvModal] = useState(false);
   const [mycvData, setmycvData] = useState([])
+  const [myAppliedJob, setMyAppliedJob] = useState([])
   const [editMyCVDataId, setEditMyCVDataId] = useState("")
   const [userData, setUserData] = useState({
     fname: "",
@@ -257,6 +258,25 @@ useEffect(() => {
   }
 }, [mycvData]);
 
+
+//get my applied jobs
+useEffect(() => {
+  const fetchMyAppliedJob = async() => {
+    try {
+      const token = localStorage.getItem('token')
+      const response = await axios.get(`${import.meta.env.VITE_API_3}/getmyappliedjobs`, {
+        headers: {Authorization: `Bearer ${token}`}
+      })
+      setMyAppliedJob(response.data)
+      console.log("my jobs", response.data)
+    } catch (error) {
+      console.log(error)
+      setError(error.response?.data?.message)
+    }
+  }
+  fetchMyAppliedJob()
+}, [])
+
   const cvInputChange = (e) => {
     const { name, value } = e.target;
     SetCvData({ ...cvData, [name]: value });
@@ -393,37 +413,37 @@ useEffect(() => {
               </div>
 
               {/* Job List */}
-              <h2 className="text-gray-500 mb-2">We've found 523 jobs!</h2>
+              <h2 className="text-gray-500 mb-2">you have applied for {myAppliedJob.length} jobs!</h2>
               <div className="space-y-4">
-                {[
-                  "UX Designer",
-                  "Product Designer",
-                  "UX/UI Designer",
-                  "Motion Designer",
-                ].map((job, index) => (
-                  <motion.div
-                    key={index}
-                    initial={{ scale: 0.9 }}
-                    animate={{ scale: 1 }}
-                    whileHover={{ scale: 1.02 }}
-                    transition={{ duration: 0.3 }}
-                    className="flex items-center justify-between bg-white shadow-lg p-4 rounded-lg"
-                  >
-                    <div>
-                      <h3 className="text-green-600 font-bold">{job}</h3>
-                      <p className="text-gray-500 text-sm">
-                        Company Name - Location
-                      </p>
-                    </div>
-                    <div className="flex items-center">
-                      <p className="text-gray-500 mr-4">8.2 - 13.5k PLN</p>
-                      <AiOutlineArrowRight className="text-green-600" />
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
+  {Array.isArray(myAppliedJob) && myAppliedJob.length > 0 ? (
+    myAppliedJob.map((job, index) => (
+      <motion.div
+        key={index}
+        initial={{ scale: 0.9 }}
+        animate={{ scale: 1 }}
+        whileHover={{ scale: 1.02 }}
+        transition={{ duration: 0.3 }}
+        className="flex items-center justify-between bg-white shadow-lg p-4 rounded-lg"
+      >
+        <div>
+          <h3 className="text-green-600 font-bold">{job.jobTitle}</h3>
+          <p className="text-gray-500 text-sm">Company Name- {job.jobId?.companyName}</p>
+        </div>
+        <div className="flex items-center">
+          <p className="text-gray-500 mr-4">Date- {new Date(job.dateApplied).toLocaleDateString()}</p>
+          <AiOutlineArrowRight className="text-green-600" />
+        </div>
+      </motion.div>
+    ))
+  ) : (
+    <h1>You haven't applied for a job yet</h1>
+  )}
+</div>
+
             </motion.div>
           </div>
+               
+              
         );
       case "Messenger":
         return <div>message</div>;

@@ -51,6 +51,7 @@ const handleInputChange = (e) => {
       )
       const { token } = response.data;
       localStorage.setItem('token', token);
+      
       toast.success('Successfully logged in');
       if (role === "admin") {
         navigate("/admindashboard");
