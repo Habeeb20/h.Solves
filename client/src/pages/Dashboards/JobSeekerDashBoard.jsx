@@ -428,6 +428,11 @@ useEffect(() => {
         <div>
           <h3 className="text-green-600 font-bold">{job.jobTitle}</h3>
           <p className="text-gray-500 text-sm">Company Name- {job.jobId?.companyName}</p>
+          <p className="text-gray-500 text-sm">About the Company- {job.jobId?.companyAbout}</p>
+          <p className="text-gray-500 text-sm">Job type- {job.jobId?.jobType}</p>
+          <p className="text-gray-500 text-sm">Salary- {job.jobId?.salary}</p>
+          <p className="text-gray-500 text-sm">years of Experience needed- {job.jobId?.experience} years</p>
+          <p className="text-gray-500 text-sm">Location- {job.jobId?.location}</p>
         </div>
         <div className="flex items-center">
           <p className="text-gray-500 mr-4">Date- {new Date(job.dateApplied).toLocaleDateString()}</p>

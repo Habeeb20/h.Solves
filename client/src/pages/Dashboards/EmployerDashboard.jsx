@@ -1,9 +1,12 @@
 import React from 'react'
 import axios from 'axios'
 import { useEffect,useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import toast from 'react-hot-toast'
+import { FiSearch, FiFilter } from "react-icons/fi";
+import { AiOutlineArrowRight } from "react-icons/ai";
+import { MdOutlineLocationOn } from "react-icons/md";
 import { FaUser, FaCalendarAlt, FaHeartbeat, FaBars, FaTimes, FaUserCircle, FaBell, FaChartBar, FaClipboardList } from "react-icons/fa";
 import { MdHome, MdEvent, MdReport, MdPerson } from "react-icons/md";
 import { Bar } from "react-chartjs-2";
@@ -41,6 +44,7 @@ const EmployerDashboard = () => {
     const [chartData, setChartData] = useState(null);
     const [myAppointment, setMyAppointment] = useState([]);
     const [activePage, setActivePage] = useState("overview"); 
+    const [myCandidate, setMyCandidate] = useState([])
     const [formData, setFormData] = useState({
       companyName: "",
       companyAbout: "",
@@ -230,23 +234,53 @@ const EmployerDashboard = () => {
     
       fetchJobsByEmployer();
     }, []);
+
+
+    //get candidates that  apply for a job
+
+    useEffect(() => {
+      const fetchData = async () => {
+        try {
+          const token = localStorage.getItem("token");
+          if (!token) {
+            setError("No token found");
+            return;
+          }
+    
+          const response = await axios.get(`${import.meta.env.VITE_API_3}/getcandidatesthatapply`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+    
+          setMyCandidate(response.data);
+          console.log("my candidates", response.data);
+        } catch (error) {
+          console.log(error);
+          setError(error.response?.data?.message || "An error occurred");
+        }
+      };
+    
+      fetchData();
+    }, []);
     
 
     //count job posted
   
 
-const fetchJobCount = async () => {
+// useEffect(()=> {
+//   const fetchJobCount = async () => {
  
-    try {
-        const response = await axios.get(
-            `${import.meta.env.VITE_API_2}/count/${employerId}`
-        );
-        console.log("Job count:", response.data.jobCount);
-        setJobCount(response.data.jobCount)
-    } catch (error) {
-        console.error("Error fetching job count:", error);
-    }
-};
+//     try {
+//         const response = await axios.get(
+//             `${import.meta.env.VITE_API_2}/count/${employerId}`
+//         );
+//         console.log("Job count:", response.data.jobCount);
+//         setJobCount(response.data.jobCount)
+//     } catch (error) {
+//         console.error("Error fetching job count:", error);
+//     }
+// };
+// fetchJobCount()
+// }, [])
 
 
 
@@ -382,59 +416,63 @@ const fetchJobCount = async () => {
           return <div>  
           <div className="bg-white shadow rounded-lg">
           <div className="flex justify-between border-b p-4">
-            <h2 className="text-lg font-bold">Appointments</h2>
+            <h2 className="text-lg font-bold">Candidates that apply</h2>
             <select className="border border-gray-300 rounded-lg px-4 py-2">
               <option>All Time (5)</option>
               <option>Past</option>
               <option>Upcoming</option>
             </select>
           </div>
-          <ul>
-            <motion.li
-              initial={{ opacity: 0, x: -50 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.3 }}
-              className="flex justify-between p-4 border-b"
-            >
-              <span>29 Sep</span>
-              <span>Plumbing</span>
-              <span className="text-red-500">Cancelled</span>
-              <span>$50</span>
-            </motion.li>
-            <motion.li
-              initial={{ opacity: 0, x: -50 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.4 }}
-              className="flex justify-between p-4 border-b"
-            >
-              <span>15 Oct</span>
-              <span>Carpentry</span>
-              <span className="text-blue-500">Booked</span>
-              <span>$345</span>
-            </motion.li>
-            <motion.li
-              initial={{ opacity: 0, x: -50 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.5 }}
-              className="flex justify-between p-4 border-b"
-            >
-              <span>11 Nov</span>
-              <span>Painting</span>
-              <span className="text-green-600">Done</span>
-              <span>$130</span>
-            </motion.li>
-            <motion.li
-              initial={{ opacity: 0, x: -50 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6 }}
-              className="flex justify-between p-4"
-            >
-              <span>13 Apr</span>
-              <span>Hair Drying</span>
-              <span className="text-green-600">Done</span>
-              <span>$50</span>
-            </motion.li>
-          </ul>
+          <table className="min-w-full border border-gray-300 shadow-md rounded-lg">
+        <thead className="bg-gray-100">
+          <tr>
+            <th className="p-4 text-left border-b">Candidate Name</th>
+            <th className="p-4 text-left border-b">Job</th>
+            <th className="p-4 text-left border-b">course studied</th>
+            <th className="p-4 text-left border-b">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {Array.isArray(myCandidate) && myCandidate.length > 0 ? (
+            myCandidate.map((candidate, index) => (
+              <motion.tr
+                key={index}
+                initial={{ opacity: 0, x: -50 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.3 + index * 0.1 }}
+                className="border-b hover:bg-gray-50"
+              >
+                <td className="p-4">{candidate.jobseekerId?.fname || "N/A"} {candidate.jobseekerId?.lname}</td>
+                <td className="p-4">{candidate.jobTitle}</td>
+                <td className="p-4 text-blue-500">{candidate.profile?.courseStudied}</td>
+                <td className="p-4">
+                {candidate && (
+                  <Link to={`/jobcandidate/${candidate._id}`}>
+                  <AiOutlineArrowRight className="text-green-600" />
+                  <h4>view details</h4>
+                  </Link>
+                )}
+             
+                </td>
+              </motion.tr>
+            ))
+          ) : (
+            <tr>
+              <td colSpan="4" className="p-4 text-center text-gray-500">
+                No candidates found
+              </td>
+            </tr>
+          )}
+
+         
+
+        
+
+    
+        </tbody>
+      </table>
+
+      
         </div></div>;
         case "My posted Jobs":
           return <div>

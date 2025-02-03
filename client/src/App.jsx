@@ -16,6 +16,7 @@ import EmployerDashboard from './pages/Dashboards/EmployerDashboard'
 import JobSeekerDashBoard from './pages/Dashboards/JobSeekerDashBoard'
 import Test3 from './pages/Test3'
 import JobDetails from './pages/JobSeekers/JobDetails'
+import CandidateDetails from './pages/Employer/CandidateDetails'
 const App = () => {
 
   return (
@@ -39,6 +40,7 @@ const App = () => {
 
 
         <Route path="/jobdetails/:id" element={<JobDetails />} />
+        <Route path="/jobcandidate/:id" element={<CandidateDetails />} />
 
       </Routes>
     </Router>

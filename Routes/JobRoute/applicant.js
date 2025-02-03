@@ -136,7 +136,7 @@ applicantRouter.get("/getmyappliedjobs", verifyToken, async (req, res) => {
         const appliedJob = await Application.find({ jobseekerId: req.user.id })
             .populate({
                 path: "jobId", 
-                select: "companyName companyAbout jobTitle jobType  salary requirements duties vacancies experience location",
+                select: "companyName companyAbout jobTitle jobType  salary requirements duties vacancies experience location experience",
             })
             .populate({
                 path: "employerId", // Fetch employer details
@@ -160,6 +160,43 @@ applicantRouter.get("/getmyappliedjobs", verifyToken, async (req, res) => {
 });
 
 
+//for employers 
+applicantRouter.get("/getcandidatesthatapply", verifyToken, async(req, res) => {
+    try {
+        const candidate = await Application.find({employerId: req.user.id})
+            .populate({path: "jobId", select: "companyName companyAbout jobTitle jobType  salary requirements duties vacancies experience location experience"})
+            .populate({path: "jobseekerId", select:"fname lname email username "})
+            .populate({path: "profile", select:"grade certificate courseStudied schoolattended"})
+
+        if(!candidate || candidate.length === 0) {
+            return res.status(404).json({message: "data not found"})
+        }
+        return res.status(200).json(candidate)
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({ message: "An error occurred" });
+    }
+})
+
+
+
+applicantRouter.get("/jobcandidates/:id", verifyToken, async(req, res) => {
+    try {
+        
+
+        const candidate = await Application.findById(req.params.id)
+        .populate({path: "jobId", select: "companyName companyAbout jobTitle jobType  salary requirements duties vacancies experience location experience"})
+        .populate({path: "jobseekerId", select:"fname lname email username "})
+        .populate({path: "profile", select:"grade certificate courseStudied schoolattended skills experience yearsOfExperience"});
+        if(!candidate)return res.status(404).json({message: "not found"})
+
+
+        res.status(200).json(candidate)
+    } catch (error) {
+        console.log(error)
+        res.status(500).json({ message: error.message });
+    }
+})
 
 
 applicantRouter.get("/application/:jobId", verifyToken,roleBasedAccess(["employer"]), async(req, res) => {
