@@ -15,6 +15,7 @@ import messagechatrouter from "./Routes/chat/messageRoute.js";
 import userRouter from "./Routes/Users.Route.js";
 import jobRouters from "./Routes/JobRoute/job.route.js";
 import applicantRouter from "./Routes/JobRoute/applicant.js";
+import messageRouter from "./Routes/JobRoute/messageroute.js";
 dotenv.config();
 
 const __dirname = path.resolve();
@@ -47,6 +48,8 @@ app.use("/api/messages", messagechatrouter)
 app.use("/api/user", userRouter)
 app.use("/api/job", jobRouters)
 app.use("/api/applicant", applicantRouter)
+
+app.use("/api/message", messageRouter)
 
 
 const storage = multer.diskStorage({

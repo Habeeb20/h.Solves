@@ -17,6 +17,7 @@ const JobSeekerDashBoard = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
+  const [successMessageFrom, setSuccessMessageFrom] = useState("");
   const [userId, setUserId] = useState("");
   const [showPopup, setShowPopup] = useState(false);
   const [activePage, setActivePage] = useState("overview");
@@ -29,6 +30,8 @@ const JobSeekerDashBoard = () => {
   const [mycvData, setmycvData] = useState([])
   const [myAppliedJob, setMyAppliedJob] = useState([])
   const [editMyCVDataId, setEditMyCVDataId] = useState("")
+  const [myMessages, setMyMessages] = useState([])
+  const [otherMessages, setOtherMessages] = useState([])
   const [userData, setUserData] = useState({
     fname: "",
     lname: "",
@@ -317,6 +320,53 @@ useEffect(() => {
     });
   };
 
+
+  //get my messages
+  useEffect(() => {
+ 
+
+    const fetchMymessage = async () => {
+     try {
+      const token = localStorage.getItem("token")
+      const response =await axios.get(`${import.meta.env.VITE_API_4}/getmessagesentbyjobseeker`, {
+        headers:{Authorization: `Bearer ${token}`}
+      })
+      setMyMessages( response.data)
+     
+      console.log("myposted jobs", response.data)
+      setSuccessMessage("your messages are here")
+     } catch (error) {
+      console.log(error)
+      setError(error.response?.data?.message)
+     }
+    }
+    fetchMymessage()
+
+  }, [])
+
+
+  //get messages being sent to me
+   useEffect(() => {
+    const getMessagesFromEmployer = async() => {
+      try {
+        const token = localStorage.getItem("token")
+        const response = await axios.get(`${import.meta.env.VITE_API_4}/getmessagereceivedbyjobseeker`, {
+          headers:{
+            Authorization:`Bearer ${token}`
+          }
+        })
+        setOtherMessages(response.data)
+        console.log("other message", response.data)
+        setSuccessMessageFrom("messages sent by employers")
+      } catch (error) {
+        console.log(error)
+        setError(error.response?.data?.message)
+      }
+    }
+    getMessagesFromEmployer()
+   }, [])
+
+
   const renderPage = () => {
     switch (activePage) {
       case "Available jobs":
@@ -450,8 +500,79 @@ useEffect(() => {
                
               
         );
-      case "Messenger":
-        return <div>message</div>;
+      case "Messenges":
+        return (    <><div>
+          <div className="space-y-4 space-x-2">
+          {successMessage && <p className="text-green-600 text-center">{successMessage}</p>}
+{Array.isArray(myMessages) && myMessages.length > 0 ? (
+myMessages.map((job, index) => (
+<motion.div
+key={index}
+initial={{ scale: 0.9 }}
+animate={{ scale: 1 }}
+whileHover={{ scale: 1.02 }}
+transition={{ duration: 0.3 }}
+className="flex items-center justify-between bg-white shadow-lg p-4 rounded-lg"
+>
+<div>
+
+<h3>Message: <span className="text-green-600 font-bold"> {job?.message}</span></h3>
+
+<p className="text-gray-500 text-sm">Name of the Company applied for- {job.jobId?.companyName}</p>
+<p className="text-gray-500 text-sm">Job title- {job.jobId?.jobTitle}</p>
+<p className="text-gray-500 text-sm">Salary- {job.jobId?.salary}</p>
+<p className="text-gray-500 text-sm">Job type- {job.jobId?.jobType}</p>
+<p className="text-gray-500 text-sm">Location- {job.jobId?.location}</p>
+</div>
+<div className="flex items-center">
+<p className="text-gray-500 mr-4">Date- {new Date(job.date).toLocaleDateString()}</p>
+<AiOutlineArrowRight className="text-green-600" />
+</div>
+</motion.div>
+))
+) : (
+<h1>You dont have any message yet</h1>
+)}
+</div>
+
+
+
+<div className="ml-20 space-y-4 space-x-2">
+          {successMessageFrom && <p className="text-blue-600 text-center">{successMessageFrom }</p>}
+{Array.isArray(otherMessages) && otherMessages.length > 0 ? (
+otherMessages.map((job, index) => (
+<motion.div
+key={index}
+initial={{ scale: 0.9 }}
+animate={{ scale: 1 }}
+whileHover={{ scale: 1.02 }}
+transition={{ duration: 0.3 }}
+className="flex items-center justify-between bg-white shadow-lg p-4 rounded-lg"
+>
+<div>
+
+<h3>Message: <span className="text-blue-600 font-bold"> {job?.message}</span></h3>
+
+<p className="text-gray-500 text-sm ">Name of the Company applied for- <span className="font-bold">{job.jobId?.companyName}</span></p>
+<p className="text-gray-500 text-sm">full Name of the employer- <span className="font-bold">{job.senderId?.fname} {job.senderId?.lname}</span></p>
+<p className="text-gray-500 text-sm">Job title- {job.jobId?.jobTitle}</p>
+<p className="text-gray-500 text-sm">Salary- {job.jobId?.salary}</p>
+<p className="text-gray-500 text-sm">Job type- {job.jobId?.jobType}</p>
+<p className="text-gray-500 text-sm">Location- {job.jobId?.location}</p>
+</div>
+<div className="flex items-center">
+<p className="text-gray-500 mr-4">Date- {new Date(job.date).toLocaleDateString()}</p>
+<AiOutlineArrowRight className="text-green-600" />
+</div>
+</motion.div>
+))
+) : (
+<h1>You dont have any message yet</h1>
+)}
+</div>
+
+</div>
+</>);
       case "My CV" :
         return (
           <>
@@ -1002,11 +1123,11 @@ useEffect(() => {
           </li>
           <li
             className={`text-green-500 font-medium ${
-              activePage === "Messenger" ? "text-green-600" : "text-gray-700"
+              activePage === "Messenges" ? "text-green-600" : "text-gray-700"
             } cursor-pointer`}
-            onClick={() => setActivePage("Messenger")}
+            onClick={() => setActivePage("Messenges")}
           >
-            Messenger
+            Messenges
           </li>
           <li
             className={`text-green-500 font-medium ${

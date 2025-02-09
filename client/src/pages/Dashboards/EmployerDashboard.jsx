@@ -33,6 +33,7 @@ const EmployerDashboard = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [jobCount, setJobCount] = useState([])
   const [employerId, setEmployerId] = useState('')
+  const[successMessageFrom, setSuccessMessageFrom] = useState([])
   const [myJobs, setMyJobs] = useState([])
     const [userData, setUserData] = useState({});
     const [loading, setLoading] = useState(false);
@@ -42,6 +43,8 @@ const EmployerDashboard = () => {
     const [userId, setUserId] = useState("");
     const [showPopup, setShowPopup] = useState(false);
     const [chartData, setChartData] = useState(null);
+    const [myMessages, setMyMessages] = useState([])
+    const [otherMessages, setOtherMessages] = useState([])
     const [myAppointment, setMyAppointment] = useState([]);
     const [activePage, setActivePage] = useState("overview"); 
     const [myCandidate, setMyCandidate] = useState([])
@@ -263,29 +266,53 @@ const EmployerDashboard = () => {
     }, []);
     
 
-    //count job posted
+//get the messages i have sent
+
+useEffect(() => {
+  const getmyMessage =async()=> {
+  try {
+    const token = localStorage.getItem("token")
+    const response = await axios.get(`${import.meta.env.VITE_API_4}/getmessageforemployer`, {
+      headers:{Authorization: `Bearer ${token}`}
+
+    })
+    setMyMessages(response.data)
+  setSuccessMessage("successfully fetched")
+  } catch (error) {
+    console.log(error)
+    setError(error.response?.data?.message)
+  }
+
+    
+  }
+  getmyMessage()
+}, [])
+
+
+
+//get messages being sent by  jobseekers
+useEffect(() => {
+  const GetOtherMessages = async() => {
+    try {
+      const token = localStorage.getItem("token")
+      const response = await axios.get(`${import.meta.env.VITE_API_4}/getmessagefromjobseekers`, {
+        headers:{
+          Authorization: `Bearer ${token}`
+        }
+      })
+      setOtherMessages(response.data)
+      console.log("jobseekers messages",response.data)
+      setSuccessMessageFrom("messages from jobseekers")
+    } catch (error) {
+      console.log(error)
+      setError(error.response?.data?.message)
+    }
+  }
+
+  GetOtherMessages()
+}, [])
   
-
-// useEffect(()=> {
-//   const fetchJobCount = async () => {
- 
-//     try {
-//         const response = await axios.get(
-//             `${import.meta.env.VITE_API_2}/count/${employerId}`
-//         );
-//         console.log("Job count:", response.data.jobCount);
-//         setJobCount(response.data.jobCount)
-//     } catch (error) {
-//         console.error("Error fetching job count:", error);
-//     }
-// };
-// fetchJobCount()
-// }, [])
-
-
-
-  
-//shwoside render 
+//showside render 
 
     const renderPage = () => {
       switch (activePage) {
@@ -504,6 +531,81 @@ const EmployerDashboard = () => {
             <h2>You havnt posted any job</h2>
           )}
           </div>;
+        case "messages" :
+          return (
+            <><div>
+                          <div className="space-y-4">
+  {Array.isArray(myMessages) && myMessages.length > 0 ? (
+    myMessages.map((job, index) => (
+      <motion.div
+        key={index}
+        initial={{ scale: 0.9 }}
+        animate={{ scale: 1 }}
+        whileHover={{ scale: 1.02 }}
+        transition={{ duration: 0.3 }}
+        className="flex items-center justify-between bg-white shadow-lg p-4 rounded-lg"
+      >
+        <div>
+          <h3>Position Applied for:<span className="text-green-600 font-bold"> {job?.jobId?.jobTitle}</span></h3>
+          <h3>Message: <span className="text-green-600 font-bold"> {job?.message}</span></h3>
+          <p className="text-gray-500 text-sm">Candidate Name- {job.jobseekerId?.fname} {job.jobseekerId?.lname}</p>
+          <p className="text-gray-500 text-sm">Candidate email & Number - {job.jobseekerId.email} {job.jobseekerId?.phone}</p>
+          <p className="text-gray-500 text-sm">Candidate UniqueNumber- {job.jobseekerId?.uniqueNumber}</p>
+          <p className="text-gray-500 text-sm">Name of the Company applied for- {job.jobId?.companyName}</p>
+          <p className="text-gray-500 text-sm">Job type- {job.jobId?.jobType}</p>
+          <p className="text-gray-500 text-sm">Salary- {job.jobId?.salary}</p>
+          <p className="text-gray-500 text-sm">years of Experience needed- {job.jobId?.experience} years</p>
+          <p className="text-gray-500 text-sm">Location- {job.jobId?.location}</p>
+        </div>
+        <div className="flex items-center">
+          <p className="text-gray-500 mr-4">Date- {new Date(job.date).toLocaleDateString()}</p>
+          <AiOutlineArrowRight className="text-green-600" />
+        </div>
+      </motion.div>
+    ))
+  ) : (
+    <h1>You have no message yet</h1>
+  )}
+</div>
+
+
+<div className="ml-20 space-y-4 space-x-2">
+          {successMessageFrom && <p className="text-blue-600 text-center">{successMessageFrom }</p>}
+{Array.isArray(otherMessages) && otherMessages.length > 0 ? (
+otherMessages.map((job, index) => (
+<motion.div
+key={index}
+initial={{ scale: 0.9 }}
+animate={{ scale: 1 }}
+whileHover={{ scale: 1.02 }}
+transition={{ duration: 0.3 }}
+className="flex items-center justify-between bg-white shadow-lg p-4 rounded-lg"
+>
+<div>
+
+<h3>Message: <span className="text-blue-600 font-bold"> {job?.message}</span></h3>
+
+<p className="text-gray-500 text-sm ">Name of the Company applied for- <span className="font-bold">{job.jobId?.companyName}</span></p>
+<p className="text-gray-500 text-sm">full Name of the employer- <span className="font-bold">{job.senderId?.fname} {job.senderId?.lname}</span></p>
+<p className="text-gray-500 text-sm">Job title- {job.jobId?.jobTitle}</p>
+<p className="text-gray-500 text-sm">Salary- {job.jobId?.salary}</p>
+<p className="text-gray-500 text-sm">Job type- {job.jobId?.jobType}</p>
+<p className="text-gray-500 text-sm">Location- {job.jobId?.location}</p>
+</div>
+<div className="flex items-center">
+<p className="text-gray-500 mr-4">Date- {new Date(job.date).toLocaleDateString()}</p>
+<AiOutlineArrowRight className="text-green-600" />
+</div>
+</motion.div>
+))
+) : (
+<h1>You dont have any message yet</h1>
+)}
+</div>
+
+            </div>
+            </>
+          )
         case "settings":
             return <div>
               <div className="bg-white shadow-md rounded-lg p-6 max-w-2xl mx-auto">
@@ -659,19 +761,17 @@ const EmployerDashboard = () => {
 
   return (
     <div>
-        <div className="flex flex-col  text-black md:flex-row min-h-screen bg-gray-100">
+        <div className="flex flex-col  text-black md:flex-row min-h-screen bg-gray-100 ">
       {/* Sidebar */}
       <motion.aside
-        initial={{ x: "-100%" }}
-        animate={{
-          x: isSidebarOpen ? 0 : "-100%",
-          mdX: 0, // Ensure the sidebar remains visible on md screens
-        }}
-        transition={{ type: "spring", stiffness: 300, damping: 30 }}
-        className={`fixed md:relative top-0 left-0 height-full bg-green-100 p-4 border-r z-50 md:w-1/4 ${
-          isSidebarOpen ? "translate-x-0" : "translate-x-[-100%]"
-        } md:translate-x-0`}
-      >
+  initial={{ x: "-100%" }}
+  animate={{ x: isSidebarOpen ? 0 : "-100%" }}
+  transition={{ type: "spring", stiffness: 300, damping: 30 }}
+  className={`fixed md:relative top-0 left-0 h-full bg-green-100 p-4 border-r z-60 md:w-1/4 
+    ${isSidebarOpen ? "translate-x-0" : "translate-x-[-100%]"} 
+    md:translate-x-0`}
+>
+
         <div className="text-center my-4 text-black">
           <img
             src={userData.profilePicture}
@@ -719,6 +819,15 @@ const EmployerDashboard = () => {
           >
             <FaBell />
             <span>My posted Jobs</span>
+          </li>
+          <li
+            className={`flex items-center space-x-4 p-2 ${
+              activePage === "messages" ? "text-green-600" : "text-gray-700"
+            } cursor-pointer`}
+            onClick={() => setActivePage("messages")}
+          >
+            <FaBell />
+            <span>Messages</span>
           </li>
           <li
             className={`flex items-center space-x-4 p-2 ${
@@ -780,17 +889,17 @@ const EmployerDashboard = () => {
             transition={{ duration: 0.5, delay: 0.2 }}
             className="bg-yellow-100 shadow rounded-lg p-4 text-center"
           >
-            <h2 className="text-xl font-bold">2</h2>
-            <p className="text-gray-600">Completed</p>
+            <h2 className="text-xl font-bold">{myMessages.length}</h2>
+            <p className="text-gray-600">Your messages</p>
           </motion.div>
           <motion.div
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5, delay: 0.4 }}
-            className="bg-red-100 shadow rounded-lg p-4 text-center"
+            className="bg-blue-100 shadow rounded-lg p-4 text-center"
           >
-            <h2 className="text-xl font-bold text-red-500">5</h2>
-            <p className="text-gray-600">Cancelled</p>
+            <h2 className="text-xl font-bold text-blue-500">{otherMessages.length}</h2>
+            <p className="text-gray-600">Incoming Messages</p>
           </motion.div>
         </div>
 

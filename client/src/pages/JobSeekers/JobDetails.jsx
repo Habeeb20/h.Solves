@@ -22,7 +22,10 @@ const JobDetails = () => {
   const [searchInput, setSearchInput] = useState("");
   const [filteredJobs, setFilteredJobs] = useState([]);
   const [message, setMessage] = useState("")
-  
+  const [jobId, setJobId] = useState([])
+  const [employerId, setEmployerId] = useState([])
+
+  const [showChat, setShowChat] = useState(false);
  const {id} = useParams()
  const [viewJobs, setViewJobs] = useState([])
   //fetching data
@@ -81,7 +84,7 @@ const JobDetails = () => {
       const response = await axios.post(`${import.meta.env.VITE_API_3}/applyforjob`, {jobId : id}, {
         headers:{Authorization: `Bearer ${token}`}
       })
-      setMessage(response?.data?.message || "successful");
+      setSuccessMessage(response?.data?.message || "successful");
     } catch (error) {
       console.log(error)
       setError(error.response?.data?.message || "Something went wrong.");
@@ -116,6 +119,8 @@ const JobDetails = () => {
           headers: {Authorization: `Bearer ${token}`}
         })
         setViewJobs(response.data)
+        setJobId(response.data._id)
+        setEmployerId(response.data.employerId?._id)
         console.log(response.data)
         toast.success("successfull")
       } catch (error) {
@@ -125,6 +130,45 @@ const JobDetails = () => {
     }
     getJobDetails()
   }, [])
+
+  const handleOpenChat = () => setShowChat(true);
+  const handleCloseChat = () => {
+    setShowChat(false);
+    setMessage("");
+  };
+
+
+  const postMessage = async (e) => {
+    e.preventDefault();
+  
+    // Check if token exists
+    const token = localStorage.getItem("token");
+    if (!token) {
+      setError("You need to be logged in to send messages.");
+      return;
+    }
+  
+ 
+  
+    try {
+      const response = await axios.post(
+        `${import.meta.env.VITE_API_4}/messagefromjobseeker/${employerId}`,
+        { jobId, message },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+  
+      setSuccessMessage("Message successfully sent");
+    } catch (error) {
+      console.log(error);
+      setError(error.response?.data?.message || "An error occurred");
+    }
+  };
+  
+  const handleMessageInput = (e) => {
+    setMessage(e.target.value)
+  }
   const renderPage = () => {
     switch (activePage) {
       case "Available jobs":
@@ -197,61 +241,7 @@ const JobDetails = () => {
 
       case "Applied jobs":
         return (
-          <div className="flex flex-col lg:flex-row bg-gray-100 min-h-screen w-full">
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.5 }}
-              className="flex-1 p-6"
-            >
-              {/* Filters */}
-              <div className="flex items-center space-x-4 mb-6">
-                <div className="flex-1 flex items-center bg-gray-200 px-4 py-2 rounded-lg">
-                  <FiSearch className="text-green-600" />
-                  <input
-                    type="text"
-                    placeholder="Search by job title, company, keywords"
-                    className="flex-1 bg-transparent outline-none ml-2"
-                  />
-                </div>
-                <MdOutlineLocationOn className="text-green-600 text-2xl" />
-                <button className="bg-green-600 text-white px-4 py-2 rounded-lg flex items-center">
-                  <FiFilter className="mr-2" /> Filters
-                </button>
-              </div>
-
-              {/* Job List */}
-              <h2 className="text-gray-500 mb-2">We've found 523 jobs!</h2>
-              <div className="space-y-4">
-                {[
-                  "UX Designer",
-                  "Product Designer",
-                  "UX/UI Designer",
-                  "Motion Designer",
-                ].map((job, index) => (
-                  <motion.div
-                    key={index}
-                    initial={{ scale: 0.9 }}
-                    animate={{ scale: 1 }}
-                    whileHover={{ scale: 1.02 }}
-                    transition={{ duration: 0.3 }}
-                    className="flex items-center justify-between bg-white shadow-lg p-4 rounded-lg"
-                  >
-                    <div>
-                      <h3 className="text-green-600 font-bold">{job}</h3>
-                      <p className="text-gray-500 text-sm">
-                        Company Name - Location
-                      </p>
-                    </div>
-                    <div className="flex items-center">
-                      <p className="text-gray-500 mr-4">8.2 - 13.5k PLN</p>
-                      <AiOutlineArrowRight className="text-green-600" />
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-            </motion.div>
-          </div>
+        <></>
         );
       case "Messenger":
         return <div>message</div>;
@@ -341,9 +331,55 @@ job Title
                  className="bg-green-500 rounded-full p-2 w-40 hover:bg-green-800 text-white">
                   {loading ? "Applying..." : "Apply for Job"}
                 </button>
-                <button className="bg-blue-500 rounded-full p-2 w-40 hover:bg-blue-800 text-white">
+                <button
+                onClick={handleOpenChat}
+                 className="bg-blue-500 rounded-full p-2 w-40 hover:bg-blue-800 text-white">
                   chat the employer
-                </button>
+                  </button>
+                  {/* </Link> */}
+
+                  {showChat && (
+        <motion.div
+          initial={{ opacity: 0, y: 50 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 50 }}
+          className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50"
+        >
+          <div className="bg-white rounded-lg p-6 w-11/12 sm:w-96 shadow-lg">
+
+          {successMessage && <p className="text-green-700 text center">{successMessage}</p>}
+          {error && <p className="text-red-500 text-center">{error}</p>}
+            <h3 className="text-lg font-semibold text-center mb-4">
+              Chat with {viewJobs.employerId?.fname}{" "}
+              {viewJobs.employerId?.lname}
+            </h3>
+
+            <textarea
+              className="w-full h-28 p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Type your message..."
+              name="message"
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+            ></textarea>
+
+            {/* Buttons */}
+            <div className="flex justify-between mt-4">
+              <button
+                onClick={postMessage}
+                className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
+              >
+                Send
+              </button>
+              <button
+                onClick={handleCloseChat}
+                className="bg-gray-400 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </motion.div>
+      )}
                 </div>
               
                 {/* Add other details here */}
